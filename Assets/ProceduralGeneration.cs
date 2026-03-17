@@ -86,4 +86,26 @@ public class ProceduralGeneration : MonoBehaviour
         pocTilemap.ClearAllTiles();
         caveTilemap.ClearAllTiles();
     }
+
+    //AI
+    public bool IsCellSolid(int x, int y)
+    {
+        if (x < 0 || x >= width || y < 0 || y >= height) return false;
+        return map[x, y] != 0; // 1 or 2 = solid, 0 = air
+    }
+
+    public void ClearCell(int x, int y)
+    {
+        if (x < 0 || x >= width || y < 0 || y >= height) return;
+
+        // Update the int map
+        map[x, y] = 0;
+
+        // Clear both tilemaps at this position
+        Vector3Int cell = new Vector3Int(x, y, 0);
+        pocTilemap.SetTile(cell, null);
+        caveTilemap.SetTile(cell, null);
+    }
+    //AI
+
 }

@@ -678,7 +678,7 @@ MonoBehaviour:
   caveTile: {fileID: 0}
   pocTilemap: {fileID: 374027737}
   caveTilemap: {fileID: 1406969693}
-  modifier: 0.15
+  modifier: 0.1
 --- !u!4 &1540977802
 Transform:
   m_ObjectHideFlags: 0

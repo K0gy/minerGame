@@ -6,7 +6,8 @@ public class MiningController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Tilemap pocTilemap;
     [SerializeField] private Tilemap caveTilemap;
-    [SerializeField] private ProceduralGeneration proceduralGen; // drag your generator here
+    [SerializeField] private Tilemap cobaltTilemap;          // NEW
+    [SerializeField] private ProceduralGeneration proceduralGen;
 
     [Header("Mining Settings")]
     [SerializeField] private float miningRadius = 3f; // world units
@@ -42,10 +43,12 @@ public class MiningController : MonoBehaviour
         float dist = Vector3.Distance(transform.position, tileWorldCenter);
         if (dist > miningRadius) return;
 
-        // 4) Check if any solid tile exists at this cell (poc OR cave)
+        // 4) Check if any solid tile exists at this cell (poc OR cave OR cobalt)
         TileBase pocTile = pocTilemap.GetTile(cellPos);
         TileBase caveTile = caveTilemap.GetTile(cellPos);
-        if (pocTile == null && caveTile == null) return; // air, nothing to mine
+        TileBase cobaltTile = cobaltTilemap != null ? cobaltTilemap.GetTile(cellPos) : null;
+
+        if (pocTile == null && caveTile == null && cobaltTile == null) return; // air, nothing to mine
 
         // 5) Only allow mining if tile is on the surface (touches air)
         if (!IsSurface(cellPos)) return;
@@ -53,6 +56,8 @@ public class MiningController : MonoBehaviour
         // 6) Clear the tile(s)
         pocTilemap.SetTile(cellPos, null);
         caveTilemap.SetTile(cellPos, null);
+        if (cobaltTilemap != null)
+            cobaltTilemap.SetTile(cellPos, null);
 
         // 7) Keep the ProceduralGeneration map in sync
         if (proceduralGen != null)
@@ -64,10 +69,12 @@ public class MiningController : MonoBehaviour
     // Surface = solid tile with at least one neighboring air tile (4 directions)
     private bool IsSurface(Vector3Int pos)
     {
-        // Must be solid at this position
+        // Must be solid at this position (poc, cave, or cobalt)
         TileBase poc = pocTilemap.GetTile(pos);
         TileBase cave = caveTilemap.GetTile(pos);
-        if (poc == null && cave == null) return false;
+        TileBase cobalt = cobaltTilemap != null ? cobaltTilemap.GetTile(pos) : null;
+
+        if (poc == null && cave == null && cobalt == null) return false;
 
         Vector3Int[] dirs =
         {
@@ -82,7 +89,9 @@ public class MiningController : MonoBehaviour
             Vector3Int n = pos + d;
             TileBase nPoc = pocTilemap.GetTile(n);
             TileBase nCave = caveTilemap.GetTile(n);
-            if (nPoc == null && nCave == null)
+            TileBase nCobalt = cobaltTilemap != null ? cobaltTilemap.GetTile(n) : null;
+
+            if (nPoc == null && nCave == null && nCobalt == null)
             {
                 // Neighbor is air => this is a surface tile
                 return true;
@@ -92,4 +101,3 @@ public class MiningController : MonoBehaviour
         return false;
     }
 }
-

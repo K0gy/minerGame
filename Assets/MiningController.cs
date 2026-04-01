@@ -6,11 +6,26 @@ public class MiningController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Tilemap pocTilemap;
     [SerializeField] private Tilemap caveTilemap;
-    [SerializeField] private Tilemap cobaltTilemap;          // NEW
+    [SerializeField] private Tilemap cobaltTilemap;
     [SerializeField] private ProceduralGeneration proceduralGen;
 
     [Header("Mining Settings")]
-    [SerializeField] private float miningRadius = 3f; // world units
+    [SerializeField] private float miningRadius = 3f;
+
+    [Header("Collapse Settings")]
+    [Range(0f, 1f)]
+    [SerializeField] private float collapseChance = 0.3f;   // choose probability here
+    [SerializeField] private int collapseRadius = 4;
+    [SerializeField] private bool collapseOnlyAbove = true;
+
+    [Header("Falling Tile")]
+    [SerializeField] private GameObject fallingTilePrefab;
+    [SerializeField] private float fallingTileLifetime = 10f;
+
+    [Header("Falling Tile Sprites")]
+    [SerializeField] private Sprite pocFallingSprite;
+    [SerializeField] private Sprite caveFallingSprite;
+    [SerializeField] private Sprite cobaltFallingSprite;
 
     private Camera _cam;
 
@@ -21,7 +36,7 @@ public class MiningController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0)) // left mouse button
+        if (Input.GetMouseButtonDown(0))
         {
             TryMineAtMouse();
         }
@@ -31,50 +46,116 @@ public class MiningController : MonoBehaviour
     {
         if (_cam == null) return;
 
-        // 1) Mouse position (screen) -> world
         Vector3 mouseWorld = _cam.ScreenToWorldPoint(Input.mousePosition);
-        mouseWorld.z = 0;
+        mouseWorld.z = 0f;
 
-        // 2) World -> tile cell (Grid coordinates)
         Vector3Int cellPos = pocTilemap.WorldToCell(mouseWorld);
 
-        // 3) Radius check around player
         Vector3 tileWorldCenter = pocTilemap.GetCellCenterWorld(cellPos);
         float dist = Vector3.Distance(transform.position, tileWorldCenter);
         if (dist > miningRadius) return;
 
-        // 4) Check if any solid tile exists at this cell (poc OR cave OR cobalt)
-        TileBase pocTile = pocTilemap.GetTile(cellPos);
-        TileBase caveTile = caveTilemap.GetTile(cellPos);
-        TileBase cobaltTile = cobaltTilemap != null ? cobaltTilemap.GetTile(cellPos) : null;
+        TileKind tileKind = GetTileKind(cellPos);
+        if (tileKind == TileKind.None) return;
 
-        if (pocTile == null && caveTile == null && cobaltTile == null) return; // air, nothing to mine
-
-        // 5) Only allow mining if tile is on the surface (touches air)
         if (!IsSurface(cellPos)) return;
 
-        // 6) Clear the tile(s)
-        pocTilemap.SetTile(cellPos, null);
-        caveTilemap.SetTile(cellPos, null);
-        if (cobaltTilemap != null)
-            cobaltTilemap.SetTile(cellPos, null);
+        bool unsupportedFromBelow = IsUnsupportedFromBelow(cellPos);
 
-        // 7) Keep the ProceduralGeneration map in sync
+        ClearTileAtCell(cellPos);
+
+        if (unsupportedFromBelow && Random.value < collapseChance)
+        {
+            TriggerCollapse(cellPos);
+        }
+    }
+
+    private enum TileKind
+    {
+        None,
+        Poc,
+        Cave,
+        Cobalt
+    }
+
+    private TileKind GetTileKind(Vector3Int pos)
+    {
+        if (pocTilemap != null && pocTilemap.GetTile(pos) != null) return TileKind.Poc;
+        if (caveTilemap != null && caveTilemap.GetTile(pos) != null) return TileKind.Cave;
+        if (cobaltTilemap != null && cobaltTilemap.GetTile(pos) != null) return TileKind.Cobalt;
+        return TileKind.None;
+    }
+
+    private Sprite GetSpriteForTileKind(TileKind kind)
+    {
+        switch (kind)
+        {
+            case TileKind.Poc: return pocFallingSprite;
+            case TileKind.Cave: return caveFallingSprite;
+            case TileKind.Cobalt: return cobaltFallingSprite;
+            default: return null;
+        }
+    }
+
+    private void ClearTileAtCell(Vector3Int cellPos)
+    {
+        if (pocTilemap != null) pocTilemap.SetTile(cellPos, null);
+        if (caveTilemap != null) caveTilemap.SetTile(cellPos, null);
+        if (cobaltTilemap != null) cobaltTilemap.SetTile(cellPos, null);
+
         if (proceduralGen != null)
         {
             proceduralGen.ClearCell(cellPos.x, cellPos.y);
         }
     }
 
-    // Surface = solid tile with at least one neighboring air tile (4 directions)
+    private bool IsUnsupportedFromBelow(Vector3Int pos)
+    {
+        Vector3Int below = pos + Vector3Int.down;
+        return GetTileKind(below) == TileKind.None;
+    }
+
+    private void TriggerCollapse(Vector3Int origin)
+    {
+        if (fallingTilePrefab == null) return;
+
+        for (int dx = -collapseRadius; dx <= collapseRadius; dx++)
+        {
+            for (int dy = -collapseRadius; dy <= collapseRadius; dy++)
+            {
+                Vector3Int pos = new Vector3Int(origin.x + dx, origin.y + dy, 0);
+
+                if (collapseOnlyAbove && pos.y < origin.y)
+                    continue;
+
+                TileKind kind = GetTileKind(pos);
+                if (kind == TileKind.None) continue;
+
+                Sprite spriteToUse = GetSpriteForTileKind(kind);
+                Vector3 worldPos = pocTilemap.GetCellCenterWorld(pos);
+
+                ClearTileAtCell(pos);
+                SpawnFallingTile(worldPos, spriteToUse);
+            }
+        }
+    }
+
+    private void SpawnFallingTile(Vector3 worldPos, Sprite spriteToUse)
+    {
+        GameObject obj = Instantiate(fallingTilePrefab, worldPos, Quaternion.identity);
+
+        SpriteRenderer sr = obj.GetComponent<SpriteRenderer>();
+        if (sr != null && spriteToUse != null)
+        {
+            sr.sprite = spriteToUse;
+        }
+
+        Destroy(obj, fallingTileLifetime);
+    }
+
     private bool IsSurface(Vector3Int pos)
     {
-        // Must be solid at this position (poc, cave, or cobalt)
-        TileBase poc = pocTilemap.GetTile(pos);
-        TileBase cave = caveTilemap.GetTile(pos);
-        TileBase cobalt = cobaltTilemap != null ? cobaltTilemap.GetTile(pos) : null;
-
-        if (poc == null && cave == null && cobalt == null) return false;
+        if (GetTileKind(pos) == TileKind.None) return false;
 
         Vector3Int[] dirs =
         {
@@ -86,16 +167,8 @@ public class MiningController : MonoBehaviour
 
         foreach (var d in dirs)
         {
-            Vector3Int n = pos + d;
-            TileBase nPoc = pocTilemap.GetTile(n);
-            TileBase nCave = caveTilemap.GetTile(n);
-            TileBase nCobalt = cobaltTilemap != null ? cobaltTilemap.GetTile(n) : null;
-
-            if (nPoc == null && nCave == null && nCobalt == null)
-            {
-                // Neighbor is air => this is a surface tile
+            if (GetTileKind(pos + d) == TileKind.None)
                 return true;
-            }
         }
 
         return false;

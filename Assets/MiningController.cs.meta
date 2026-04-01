@@ -1,2 +1,16 @@
 fileFormatVersion: 2
 guid: 7b48346d501a35349bb9fad8221f205c
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - pocTilemap: {instanceID: 0}
+  - caveTilemap: {instanceID: 0}
+  - cobaltTilemap: {instanceID: 0}
+  - proceduralGen: {instanceID: 0}
+  - fallingTilePrefab: {fileID: 6882803031547544819, guid: 51a34b088e4b9bd4a879e14e7c567aaa, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

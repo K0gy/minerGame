@@ -161,9 +161,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 374027735}
   - {fileID: 1406969691}
   - {fileID: 391389417}
+  - {fileID: 374027735}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &154587672
@@ -690,50 +690,6 @@ TilemapCollider2D:
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
   m_UseDelaunayMesh: 0
---- !u!1 &551971134
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 551971136}
-  - component: {fileID: 551971135}
-  m_Layer: 0
-  m_Name: Grid
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!156049354 &551971135
-Grid:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 551971134}
-  m_Enabled: 1
-  m_CellSize: {x: 1, y: 1, z: 0}
-  m_CellGap: {x: 0, y: 0, z: 0}
-  m_CellLayout: 0
-  m_CellSwizzle: 0
---- !u!4 &551971136
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 551971134}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &844946512
 GameObject:
   m_ObjectHideFlags: 0
@@ -1239,6 +1195,14 @@ MonoBehaviour:
   cobaltTilemap: {fileID: 391389419}
   proceduralGen: {fileID: 1540977801}
   miningRadius: 3
+  collapseChance: 0.496
+  collapseRadius: 2
+  collapseOnlyAbove: 1
+  fallingTilePrefab: {fileID: 6882803031547544819, guid: 51a34b088e4b9bd4a879e14e7c567aaa, type: 3}
+  fallingTileLifetime: 10
+  pocFallingSprite: {fileID: 4107463734209962536, guid: ec9222a1c531c9447ad77bc4994e53dc, type: 3}
+  caveFallingSprite: {fileID: 0}
+  cobaltFallingSprite: {fileID: -553110367597051184, guid: a5a15bfd75938594aa13ad168f2abf87, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1247,4 +1211,3 @@ SceneRoots:
   - {fileID: 1540977802}
   - {fileID: 147798858}
   - {fileID: 844946515}
-  - {fileID: 551971136}

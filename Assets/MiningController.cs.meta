@@ -9,6 +9,9 @@ MonoImporter:
   - cobaltTilemap: {instanceID: 0}
   - proceduralGen: {instanceID: 0}
   - fallingTilePrefab: {fileID: 6882803031547544819, guid: 51a34b088e4b9bd4a879e14e7c567aaa, type: 3}
+  - pocFallingSprite: {fileID: 4107463734209962536, guid: ec9222a1c531c9447ad77bc4994e53dc, type: 3}
+  - caveFallingSprite: {instanceID: 0}
+  - cobaltFallingSprite: {fileID: -553110367597051184, guid: a5a15bfd75938594aa13ad168f2abf87, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

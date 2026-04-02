@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -14,9 +15,8 @@ public class MiningController : MonoBehaviour
 
     [Header("Collapse Settings")]
     [Range(0f, 1f)]
-    [SerializeField] private float collapseChance = 0.3f;   // choose probability here
+    [SerializeField] private float collapseChance = 0.3f;
     [SerializeField] private int collapseRadius = 4;
-    [SerializeField] private bool collapseOnlyAbove = true;
 
     [Header("Falling Tile")]
     [SerializeField] private GameObject fallingTilePrefab;
@@ -28,6 +28,22 @@ public class MiningController : MonoBehaviour
     [SerializeField] private Sprite cobaltFallingSprite;
 
     private Camera _cam;
+
+    private enum TileKind
+    {
+        None,
+        Poc,
+        Cave,
+        Cobalt
+    }
+
+    private readonly Vector3Int[] dirs =
+    {
+        Vector3Int.up,
+        Vector3Int.down,
+        Vector3Int.left,
+        Vector3Int.right
+    };
 
     private void Awake()
     {
@@ -66,16 +82,8 @@ public class MiningController : MonoBehaviour
 
         if (unsupportedFromBelow && Random.value < collapseChance)
         {
-            TriggerCollapse(cellPos);
+            TriggerSmartCollapse(cellPos);
         }
-    }
-
-    private enum TileKind
-    {
-        None,
-        Poc,
-        Cave,
-        Cobalt
     }
 
     private TileKind GetTileKind(Vector3Int pos)
@@ -97,6 +105,30 @@ public class MiningController : MonoBehaviour
         }
     }
 
+    private bool IsSolid(Vector3Int pos)
+    {
+        return GetTileKind(pos) != TileKind.None;
+    }
+
+    private bool IsUnsupportedFromBelow(Vector3Int pos)
+    {
+        Vector3Int below = pos + Vector3Int.down;
+        return !IsSolid(below);
+    }
+
+    private bool IsSurface(Vector3Int pos)
+    {
+        if (!IsSolid(pos)) return false;
+
+        foreach (var d in dirs)
+        {
+            if (!IsSolid(pos + d))
+                return true;
+        }
+
+        return false;
+    }
+
     private void ClearTileAtCell(Vector3Int cellPos)
     {
         if (pocTilemap != null) pocTilemap.SetTile(cellPos, null);
@@ -109,34 +141,109 @@ public class MiningController : MonoBehaviour
         }
     }
 
-    private bool IsUnsupportedFromBelow(Vector3Int pos)
+    private bool IsWithinCollapseRadius(Vector3Int origin, Vector3Int pos)
     {
-        Vector3Int below = pos + Vector3Int.down;
-        return GetTileKind(below) == TileKind.None;
+        return Mathf.Abs(pos.x - origin.x) <= collapseRadius &&
+               Mathf.Abs(pos.y - origin.y) <= collapseRadius;
     }
 
-    private void TriggerCollapse(Vector3Int origin)
+    private HashSet<Vector3Int> GetConnectedCluster(Vector3Int start)
+    {
+        HashSet<Vector3Int> cluster = new HashSet<Vector3Int>();
+        Queue<Vector3Int> queue = new Queue<Vector3Int>();
+
+        foreach (var d in dirs)
+        {
+            Vector3Int neighbor = start + d;
+            if (IsSolid(neighbor) && IsWithinCollapseRadius(start, neighbor))
+            {
+                queue.Enqueue(neighbor);
+                cluster.Add(neighbor);
+            }
+        }
+
+        while (queue.Count > 0)
+        {
+            Vector3Int current = queue.Dequeue();
+
+            foreach (var d in dirs)
+            {
+                Vector3Int next = current + d;
+                if (!IsWithinCollapseRadius(start, next)) continue;
+                if (!IsSolid(next)) continue;
+                if (cluster.Contains(next)) continue;
+
+                cluster.Add(next);
+                queue.Enqueue(next);
+            }
+        }
+
+        return cluster;
+    }
+
+    private HashSet<Vector3Int> GetSupportedTiles(HashSet<Vector3Int> cluster)
+    {
+        HashSet<Vector3Int> supported = new HashSet<Vector3Int>();
+        Queue<Vector3Int> queue = new Queue<Vector3Int>();
+
+        foreach (var pos in cluster)
+        {
+            Vector3Int below = pos + Vector3Int.down;
+
+            if (!cluster.Contains(below) && IsSolid(below))
+            {
+                supported.Add(pos);
+                queue.Enqueue(pos);
+            }
+        }
+
+        while (queue.Count > 0)
+        {
+            Vector3Int current = queue.Dequeue();
+
+            foreach (var d in dirs)
+            {
+                Vector3Int next = current + d;
+                if (!cluster.Contains(next)) continue;
+                if (supported.Contains(next)) continue;
+
+                supported.Add(next);
+                queue.Enqueue(next);
+            }
+        }
+
+        return supported;
+    }
+
+    private void TriggerSmartCollapse(Vector3Int origin)
     {
         if (fallingTilePrefab == null) return;
 
-        for (int dx = -collapseRadius; dx <= collapseRadius; dx++)
+        HashSet<Vector3Int> cluster = GetConnectedCluster(origin);
+        if (cluster.Count == 0) return;
+
+        HashSet<Vector3Int> supportedTiles = GetSupportedTiles(cluster);
+
+        List<Vector3Int> fallingTiles = new List<Vector3Int>();
+
+        foreach (var pos in cluster)
         {
-            for (int dy = -collapseRadius; dy <= collapseRadius; dy++)
+            if (!supportedTiles.Contains(pos))
             {
-                Vector3Int pos = new Vector3Int(origin.x + dx, origin.y + dy, 0);
-
-                if (collapseOnlyAbove && pos.y < origin.y)
-                    continue;
-
-                TileKind kind = GetTileKind(pos);
-                if (kind == TileKind.None) continue;
-
-                Sprite spriteToUse = GetSpriteForTileKind(kind);
-                Vector3 worldPos = pocTilemap.GetCellCenterWorld(pos);
-
-                ClearTileAtCell(pos);
-                SpawnFallingTile(worldPos, spriteToUse);
+                fallingTiles.Add(pos);
             }
+        }
+
+        foreach (var pos in fallingTiles)
+        {
+            TileKind kind = GetTileKind(pos);
+            if (kind == TileKind.None) continue;
+
+            Sprite spriteToUse = GetSpriteForTileKind(kind);
+            Vector3 worldPos = pocTilemap.GetCellCenterWorld(pos);
+
+            ClearTileAtCell(pos);
+            SpawnFallingTile(worldPos, spriteToUse);
         }
     }
 
@@ -151,26 +258,5 @@ public class MiningController : MonoBehaviour
         }
 
         Destroy(obj, fallingTileLifetime);
-    }
-
-    private bool IsSurface(Vector3Int pos)
-    {
-        if (GetTileKind(pos) == TileKind.None) return false;
-
-        Vector3Int[] dirs =
-        {
-            Vector3Int.up,
-            Vector3Int.down,
-            Vector3Int.left,
-            Vector3Int.right
-        };
-
-        foreach (var d in dirs)
-        {
-            if (GetTileKind(pos + d) == TileKind.None)
-                return true;
-        }
-
-        return false;
     }
 }

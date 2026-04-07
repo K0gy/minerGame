@@ -8,13 +8,14 @@ public class MiningController : MonoBehaviour
     [SerializeField] private Tilemap caveTilemap;
     [SerializeField] private Tilemap cobaltTilemap;
     [SerializeField] private ProceduralGeneration proceduralGen;
+    [SerializeField] private OreCounterUI oreCounterUI;
 
     [Header("Mining Settings")]
     [SerializeField] private float miningRadius = 3f;
 
     [Header("Collapse Settings")]
     [Range(0f, 1f)]
-    [SerializeField] private float collapseChance = 0.3f;   // choose probability here
+    [SerializeField] private float collapseChance = 0.3f;
     [SerializeField] private int collapseRadius = 4;
     [SerializeField] private bool collapseOnlyAbove = true;
 
@@ -28,10 +29,16 @@ public class MiningController : MonoBehaviour
     [SerializeField] private Sprite cobaltFallingSprite;
 
     private Camera _cam;
+    private int cobaltMinedCount = 0;
 
     private void Awake()
     {
         _cam = Camera.main;
+    }
+
+    private void Start()
+    {
+        UpdateOreUI();
     }
 
     private void Update()
@@ -61,6 +68,12 @@ public class MiningController : MonoBehaviour
         if (!IsSurface(cellPos)) return;
 
         bool unsupportedFromBelow = IsUnsupportedFromBelow(cellPos);
+
+        if (tileKind == TileKind.Cobalt)
+        {
+            cobaltMinedCount++;
+            UpdateOreUI();
+        }
 
         ClearTileAtCell(cellPos);
 
@@ -172,5 +185,13 @@ public class MiningController : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void UpdateOreUI()
+    {
+        if (oreCounterUI != null)
+        {
+            oreCounterUI.SetCobaltCount(cobaltMinedCount);
+        }
     }
 }

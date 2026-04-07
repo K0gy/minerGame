@@ -3,13 +3,6 @@ using UnityEngine;
 
 namespace TarodevController
 {
-    /// <summary>
-    /// Hey!
-    /// Tarodev here. I built this controller as there was a severe lack of quality & free 2D controllers out there.
-    /// I have a premium version on Patreon, which has every feature you'd expect from a polished controller. Link: https://www.patreon.com/tarodev
-    /// You can play and compete for best times here: https://tarodev.itch.io/extended-ultimate-2d-controller
-    /// If you hve any questions or would like to brag about your score, come to discord: https://discord.gg/tarodev
-    /// </summary>
     [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
     public class PlayerController : MonoBehaviour, IPlayerController
     {
@@ -19,6 +12,9 @@ namespace TarodevController
         private FrameInput _frameInput;
         private Vector2 _frameVelocity;
         private bool _cachedQueryStartInColliders;
+
+        private Vector2 _externalVelocity;
+        [SerializeField] private float _externalDecay = 35f;
 
         #region Interface
 
@@ -73,12 +69,13 @@ namespace TarodevController
             HandleJump();
             HandleDirection();
             HandleGravity();
-            
+            DecayExternalVelocity();
+
             ApplyMovement();
         }
 
         #region Collisions
-        
+
         private float _frameLeftGrounded = float.MinValue;
         private bool _grounded;
 
@@ -86,23 +83,38 @@ namespace TarodevController
         {
             Physics2D.queriesStartInColliders = false;
 
-            // Ground and Ceiling
             bool groundHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.down, _stats.GrounderDistance, ~_stats.PlayerLayer);
             bool ceilingHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.up, _stats.GrounderDistance, ~_stats.PlayerLayer);
+            bool leftWallHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.left, _stats.GrounderDistance, ~_stats.PlayerLayer);
+            bool rightWallHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.right, _stats.GrounderDistance, ~_stats.PlayerLayer);
 
-            // Hit a Ceiling
-            if (ceilingHit) _frameVelocity.y = Mathf.Min(0, _frameVelocity.y);
+            if (ceilingHit)
+            {
+                _frameVelocity.y = Mathf.Min(0, _frameVelocity.y);
+                if (_externalVelocity.y > 0) _externalVelocity.y = 0;
+            }
 
-            // Landed on the Ground
+            if (leftWallHit && _externalVelocity.x < 0)
+            {
+                _externalVelocity.x = 0;
+            }
+
+            if (rightWallHit && _externalVelocity.x > 0)
+            {
+                _externalVelocity.x = 0;
+            }
+
             if (!_grounded && groundHit)
             {
                 _grounded = true;
                 _coyoteUsable = true;
                 _bufferedJumpUsable = true;
                 _endedJumpEarly = false;
+
+                if (_externalVelocity.y < 0) _externalVelocity.y = 0;
+
                 GroundedChanged?.Invoke(true, Mathf.Abs(_frameVelocity.y));
             }
-            // Left the Ground
             else if (_grounded && !groundHit)
             {
                 _grounded = false;
@@ -114,7 +126,6 @@ namespace TarodevController
         }
 
         #endregion
-
 
         #region Jumping
 
@@ -185,7 +196,22 @@ namespace TarodevController
 
         #endregion
 
-        private void ApplyMovement() => _rb.linearVelocity = _frameVelocity;
+        private void DecayExternalVelocity()
+        {
+            _externalVelocity = Vector2.MoveTowards(_externalVelocity, Vector2.zero, _externalDecay * Time.fixedDeltaTime);
+        }
+
+        private void ApplyMovement()
+        {
+            _rb.linearVelocity = _frameVelocity + _externalVelocity;
+        }
+
+        public void AddExplosionVelocity(Vector2 velocity)
+        {
+            _externalVelocity += velocity;
+            _grounded = false;
+            _endedJumpEarly = false;
+        }
 
 #if UNITY_EDITOR
         private void OnValidate()
@@ -205,7 +231,6 @@ namespace TarodevController
     public interface IPlayerController
     {
         public event Action<bool, float> GroundedChanged;
-
         public event Action Jumped;
         public Vector2 FrameInput { get; }
     }

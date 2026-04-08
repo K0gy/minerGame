@@ -7,6 +7,7 @@ public class GasExplosionController : MonoBehaviour
     [Header("References")]
     [SerializeField] private ProceduralGeneration proceduralGeneration;
     [SerializeField] private PlayerController playerController;
+    [SerializeField] private PlayerHealth playerHealth;
 
     [Header("Gas Trigger")]
     [SerializeField] private float gasDelay = 0.5f;
@@ -15,21 +16,35 @@ public class GasExplosionController : MonoBehaviour
     [SerializeField] private int gasExplosionRadius = 2;
     [SerializeField] private float blastHorizontal = 20f;
     [SerializeField] private float blastVertical = 20f;
+    [SerializeField] private float playerBlastRadius = 2.5f;
     [SerializeField] private bool destroyTerrainOnExplosion = true;
 
-    [Header("Player Blast Range")]
-    [SerializeField] private float playerBlastRadius = 2.5f;
+    [Header("Damage")]
+    [SerializeField] private int explosionDamage = 3;
 
     [Header("Debug")]
-    [SerializeField] private bool debugLogs = false;
+    [SerializeField] private bool debugLogs = true;
 
     private Coroutine gasRoutine;
     private bool explosionPending;
     private Vector3Int pendingGasCell;
 
+    private void Awake()
+    {
+        if (playerController == null)
+            playerController = GetComponent<PlayerController>();
+
+        if (playerHealth == null)
+            playerHealth = GetComponent<PlayerHealth>();
+
+        if (proceduralGeneration == null)
+            proceduralGeneration = FindFirstObjectByType<ProceduralGeneration>();
+    }
+
     void Reset()
     {
         playerController = GetComponent<PlayerController>();
+        playerHealth = GetComponent<PlayerHealth>();
     }
 
     void Update()
@@ -62,6 +77,7 @@ public class GasExplosionController : MonoBehaviour
 
     void TriggerExplosion(int gasX, int gasY)
     {
+        if (proceduralGeneration == null) return;
         if (!proceduralGeneration.HasGas(gasX, gasY)) return;
 
         if (debugLogs) Debug.Log("BOOM!");
@@ -71,11 +87,11 @@ public class GasExplosionController : MonoBehaviour
         proceduralGeneration.ExplodeGasAtCell(gasX, gasY, gasExplosionRadius, destroyTerrainOnExplosion);
 
         float distToPlayer = Vector2.Distance(transform.position, explosionWorldPos);
+        if (distToPlayer > playerBlastRadius) return;
 
-        if (distToPlayer > playerBlastRadius)
+        if (playerHealth != null)
         {
-            if (debugLogs) Debug.Log("Explosion happened, but player was out of blast range.");
-            return;
+            playerHealth.TakeDamage(explosionDamage);
         }
 
         Vector2 dir = ((Vector2)transform.position - (Vector2)explosionWorldPos).normalized;
@@ -90,6 +106,9 @@ public class GasExplosionController : MonoBehaviour
             Mathf.Abs(dir.y) * blastVertical + blastVertical * 0.35f
         );
 
-        playerController.AddExplosionVelocity(launchVelocity);
+        if (playerController != null)
+        {
+            playerController.AddExplosionVelocity(launchVelocity);
+        }
     }
 }

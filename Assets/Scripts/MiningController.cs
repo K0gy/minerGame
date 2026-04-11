@@ -194,4 +194,8 @@ public class MiningController : MonoBehaviour
             oreCounterUI.SetCobaltCount(cobaltMinedCount);
         }
     }
+    public int GetCobaltCount()
+    {
+    return cobaltMinedCount;
+    }
 }

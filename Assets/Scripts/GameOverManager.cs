@@ -14,7 +14,22 @@ public class GameOverManager : MonoBehaviour
         GameOverPanel.SetActive(true);
         Time.timeScale = 0f;
 
-        yourScoreText.text = "Your Score: " + ScoreManager.instance.currentScore;
+        MiningController mining = FindObjectOfType<MiningController>();
+
+        int score = 0;
+
+        if (mining != null)
+        {
+            score = mining.GetCobaltCount();
+        }
+
+        yourScoreText.text = "Your Score: " + score;
+        if (score > ScoreManager.instance.highScore)
+        {
+            ScoreManager.instance.highScore = score;
+            PlayerPrefs.SetInt("HighScore", score);
+        }
+
         highScoreText.text = "High Score: " + ScoreManager.instance.highScore;
     }
 

@@ -9,6 +9,7 @@ namespace TarodevController
         [SerializeField] private ScriptableStats _stats;
         private Rigidbody2D _rb;
         private CapsuleCollider2D _col;
+        private SpriteRenderer _sr;
         private FrameInput _frameInput;
         private Vector2 _frameVelocity;
         private bool _cachedQueryStartInColliders;
@@ -30,6 +31,7 @@ namespace TarodevController
         {
             _rb = GetComponent<Rigidbody2D>();
             _col = GetComponent<CapsuleCollider2D>();
+            _sr = GetComponent<SpriteRenderer>();
 
             _cachedQueryStartInColliders = Physics2D.queriesStartInColliders;
         }
@@ -165,6 +167,15 @@ namespace TarodevController
 
         private void HandleDirection()
         {
+            if (_frameInput.Move.x > 0)
+            {
+                _sr.flipX = false;
+            }
+            else if (_frameInput.Move.x < 0)
+            {
+                _sr.flipX = true;
+            }
+
             if (_frameInput.Move.x == 0)
             {
                 var deceleration = _grounded ? _stats.GroundDeceleration : _stats.AirDeceleration;

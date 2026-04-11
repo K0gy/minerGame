@@ -11,6 +11,7 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private HealthUI healthUI;
+    [SerializeField] private GameOverManager gameOverManager;
 
     private int currentLives;
     private bool isInvincible;
@@ -27,9 +28,23 @@ public class PlayerHealth : MonoBehaviour
         if (isInvincible) return;
 
         currentLives -= amount;
+
+        // Empêcher < 0
+        if (currentLives < 0)
+            currentLives = 0;
+
         UpdateUI();
 
         Debug.Log("Player life: " + currentLives);
+
+        // Game Over
+        if (currentLives == 0)
+        {
+            if (gameOverManager != null)
+            {
+                gameOverManager.ShowGameOver();
+            }
+        }
 
         if (invincibilityRoutine != null)
         {

@@ -582,7 +582,7 @@ MonoBehaviour:
   title: {fileID: 823227206}
   menuPanel: {fileID: 376987932}
   fadeDuration: 2
-  gameSceneName: Game
+  gameSceneName: SampleScene
 --- !u!4 &699438244
 Transform:
   m_ObjectHideFlags: 0

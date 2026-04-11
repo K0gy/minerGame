@@ -8,10 +8,7 @@ public class MainMenu : MonoBehaviour
     public Image fadeImage;
     public GameObject title;
     public GameObject menuPanel;
-
     public float fadeDuration = 2f;
-    public float titleDuration = 2f;
-
     public string gameSceneName = "Game";
 
     void Start()
@@ -21,17 +18,14 @@ public class MainMenu : MonoBehaviour
 
     IEnumerator Sequence()
     {
-        // Fade in (noir → visible)
         yield return StartCoroutine(FadeIn());
+        yield return new WaitForSeconds(2f);
+        yield return StartCoroutine(FadeOut());
 
-        // Attendre avec le titre
-        yield return new WaitForSeconds(titleDuration);
-
-        // Cacher titre
         title.SetActive(false);
-
-        // Activer menu
         menuPanel.SetActive(true);
+
+        yield return StartCoroutine(FadeIn());
     }
 
     IEnumerator FadeIn()
@@ -49,12 +43,24 @@ public class MainMenu : MonoBehaviour
         fadeImage.color = c;
     }
 
-    public void PlayGame()
+    IEnumerator FadeOut()
     {
-        StartCoroutine(FadeOut());
+        Color c = fadeImage.color;
+
+        for (float t = 0f; t < 1f; t += Time.deltaTime / fadeDuration)
+        {
+            c.a = t;
+            fadeImage.color = c;
+            yield return null;
+        }
     }
 
-    IEnumerator FadeOut()
+    public void PlayGame()
+    {
+        StartCoroutine(FadeOutAndLoad());
+    }
+
+    IEnumerator FadeOutAndLoad()
     {
         Color c = fadeImage.color;
 

@@ -136,7 +136,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &376987933
 RectTransform:
   m_ObjectHideFlags: 0
@@ -582,7 +582,6 @@ MonoBehaviour:
   title: {fileID: 823227206}
   menuPanel: {fileID: 376987932}
   fadeDuration: 2
-  titleDuration: 2
   gameSceneName: Game
 --- !u!4 &699438244
 Transform:
@@ -888,7 +887,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1019504085
 RectTransform:
   m_ObjectHideFlags: 0

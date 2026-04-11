@@ -1776,7 +1776,7 @@ MonoBehaviour:
   cobaltRarity: 0.25
   cobaltSmoothness: 0.12
   cobaltMinY: 0
-  cobaltMaxY: 200
+  cobaltMaxY: 15
   gasRarity: 0.3
   gasSmoothness: 0.1
   gasMinY: 10

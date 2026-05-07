@@ -6,11 +6,14 @@ using System.Collections;
 
 public class MainMenu : MonoBehaviour
 {
+    [Header("UI References")]
     public Image fadeImage;
     public GameObject title;
     public GameObject menuPanel;
     public GameObject introPanel;
     public TextMeshProUGUI introText;
+
+    [Header("Settings")]
     public float fadeDuration = 2f;
     public string gameSceneName = "SampleScene";
 
@@ -21,39 +24,41 @@ public class MainMenu : MonoBehaviour
 
     IEnumerator Sequence()
     {
-    // 1. Fade vers titre
-    yield return StartCoroutine(FadeIn());
-    yield return new WaitForSeconds(2f);
+        // 1. Fade IN (show title)
+        yield return FadeIn();
+        yield return new WaitForSeconds(2f);
 
-    // 2. Fade vers noir
-    yield return StartCoroutine(FadeOut());
+        // 2. Fade OUT (to black)
+        yield return FadeOut();
 
-    // 3. Cacher titre
-    title.SetActive(false);
+        // 3. Hide title
+        title.SetActive(false);
 
-    // 4. ACTIVER INTRO
-    introPanel.SetActive(true);
+        // 4. Show intro panel
+        introPanel.SetActive(true);
 
-    // 5. Fade IN intro
-    yield return StartCoroutine(FadeIn());
+        // 5. Fade IN intro
+        yield return FadeIn();
 
-    // 6. TEXTE PROGRESSIF
-    yield return StartCoroutine(PlayIntroText());
+        // 6. Play intro text
+        yield return PlayIntroText();
 
-    // 7. Fade OUT intro
-    yield return StartCoroutine(FadeOut());
+        // 7. Fade OUT intro
+        yield return FadeOut();
 
-    introPanel.SetActive(false);
+        introPanel.SetActive(false);
 
-    // 8. AFFICHER MENU
-    menuPanel.SetActive(true);
+        // 8. Show main menu
+        menuPanel.SetActive(true);
 
-    // 9. Fade final
-    yield return StartCoroutine(FadeIn());
+        // 9. Final fade IN
+        yield return FadeIn();
     }
 
     IEnumerator FadeIn()
     {
+        if (fadeImage == null) yield break;
+
         Color c = fadeImage.color;
 
         for (float t = 1f; t > 0f; t -= Time.deltaTime / fadeDuration)
@@ -63,12 +68,14 @@ public class MainMenu : MonoBehaviour
             yield return null;
         }
 
-        c.a = 0;
+        c.a = 0f;
         fadeImage.color = c;
     }
 
     IEnumerator FadeOut()
     {
+        if (fadeImage == null) yield break;
+
         Color c = fadeImage.color;
 
         for (float t = 0f; t < 1f; t += Time.deltaTime / fadeDuration)
@@ -77,56 +84,43 @@ public class MainMenu : MonoBehaviour
             fadeImage.color = c;
             yield return null;
         }
+
+        c.a = 1f;
+        fadeImage.color = c;
     }
 
+    
     public void PlayGame()
     {
-        StartCoroutine(FadeOutAndLoad());
+    Debug.Log("BOUTON CLIQUÉ");
     }
 
     IEnumerator FadeOutAndLoad()
     {
-        Color c = fadeImage.color;
-
-        for (float t = 0f; t < 1f; t += Time.deltaTime / fadeDuration)
-        {
-            c.a = t;
-            fadeImage.color = c;
-            yield return null;
-        }
-
+        yield return FadeOut();
         SceneManager.LoadScene(gameSceneName);
     }
+
     IEnumerator PlayIntroText()
     {
-    introText.text = "";
+        if (introText == null) yield break;
 
-    introText.text = "République Démocratique du Congo.";
-    yield return new WaitForSeconds(2.0f);
+        introText.text = "";
 
-    introText.text += "\n\nIci, le cobalt vaut plus que des vies.";
-    yield return new WaitForSeconds(3.0f);
-
-    introText.text += "\n\nChaque jour, des jeunes descendent dans des mines instables,";
-    yield return new WaitForSeconds(2.0f);
-
-    introText.text += "\n\nOù les effondrements, les gaz toxiques et les explosions\npeuvent survenir à tout moment.";
-    yield return new WaitForSeconds(4.0f);
-
-    introText.text += "\n\nAujourd’hui, c’est toi.";
-    yield return new WaitForSeconds(3.0f);
-
-    introText.text += "\n\nDescends.";
-    yield return new WaitForSeconds(2.0f);
-
-    introText.text += "\n\nMine.";
-    yield return new WaitForSeconds(2.0f);
-
-    introText.text += "\n\nÉvite les dangers.";
-    yield return new WaitForSeconds(2.0f);
-
-    introText.text += "\n\nSurvis.";
-    yield return new WaitForSeconds(5.0f);
+        yield return ShowLine("République Démocratique du Congo.", 2f);
+        yield return ShowLine("\n\nIci, le cobalt vaut plus que des vies.", 3f);
+        yield return ShowLine("\n\nChaque jour, des jeunes descendent dans des mines instables,", 2f);
+        yield return ShowLine("\n\nOù les effondrements, les gaz toxiques et les explosions\npeuvent survenir à tout moment.", 4f);
+        yield return ShowLine("\n\nAujourd’hui, c’est toi.", 3f);
+        yield return ShowLine("\n\nDescends.", 2f);
+        yield return ShowLine("\n\nMine.", 2f);
+        yield return ShowLine("\n\nÉvite les dangers.", 2f);
+        yield return ShowLine("\n\nSurvis.", 5f);
     }
-    
+
+    IEnumerator ShowLine(string text, float delay)
+    {
+        introText.text += text;
+        yield return new WaitForSeconds(delay);
+    }
 }

@@ -128,4 +128,5 @@ public class MainMenu : MonoBehaviour
     introText.text += "\n\nSurvis.";
     yield return new WaitForSeconds(5.0f);
     }
+    
 }

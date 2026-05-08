@@ -2,8 +2,12 @@ using System.Collections;
 using UnityEngine;
 using TarodevController;
 
+
 public class GasExplosionController : MonoBehaviour
 {
+    [Header("Explosion Audio")]
+    [SerializeField] private AudioSource explosionAudio;
+    [SerializeField] private AudioClip explosionClip;
     [Header("References")]
     [SerializeField] private ProceduralGeneration proceduralGeneration;
     [SerializeField] private PlayerController playerController;
@@ -81,6 +85,10 @@ public class GasExplosionController : MonoBehaviour
         if (!proceduralGeneration.HasGas(gasX, gasY)) return;
 
         if (debugLogs) Debug.Log("BOOM!");
+        if (explosionAudio != null && explosionClip != null)
+        {
+        explosionAudio.PlayOneShot(explosionClip);
+        }
 
         Vector3 explosionWorldPos = new Vector3(gasX + 0.5f, gasY + 0.5f, 0f);
 

@@ -3955,6 +3955,8 @@ MonoBehaviour:
   GameOverPanel: {fileID: 1355625144}
   yourScoreText: {fileID: 967900965}
   highScoreText: {fileID: 1757616977}
+  gameOverAudio: {fileID: 1562868210}
+  gameOverClip: {fileID: 8300000, guid: 5a2849e718da448628cade651b321847, type: 3}
 --- !u!4 &2141418158
 Transform:
   m_ObjectHideFlags: 0

@@ -13,6 +13,9 @@ public class MiningController : MonoBehaviour
     [Header("Mining Settings")]
     [SerializeField] private float miningRadius = 3f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource miningAudio;  // glisse ton AudioSource ici    
+
     [Header("Collapse Settings")]
     [Range(0f, 1f)]
     [SerializeField] private float collapseChance = 0.3f;
@@ -69,10 +72,16 @@ public class MiningController : MonoBehaviour
 
         bool unsupportedFromBelow = IsUnsupportedFromBelow(cellPos);
 
+        if (miningAudio != null)
+                miningAudio.Play();
+
         if (tileKind == TileKind.Cobalt)
         {
+            
             cobaltMinedCount++;
             UpdateOreUI();
+
+        
         }
 
         ClearTileAtCell(cellPos);

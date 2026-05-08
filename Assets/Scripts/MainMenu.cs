@@ -12,6 +12,7 @@ public class MainMenu : MonoBehaviour
     public GameObject menuPanel;
     public GameObject introPanel;
     public TextMeshProUGUI introText;
+    public Button playButton; // <-- Assigner le bouton Play ici
 
     [Header("Settings")]
     public float fadeDuration = 2f;
@@ -19,26 +20,41 @@ public class MainMenu : MonoBehaviour
 
     void Start()
     {
-        // 🔥 Make sure intro panel does NOT block clicks at start
+        // ⚡ Sécuriser le blocage d'UI
         if (introPanel != null)
         {
             introPanel.SetActive(false);
-
             CanvasGroup cg = introPanel.GetComponent<CanvasGroup>();
             if (cg != null)
+            {
                 cg.blocksRaycasts = false;
+                cg.interactable = false;
+                cg.alpha = 0f;
+            }
         }
 
-        // Menu should be OFF at start (will be shown after intro)
         if (menuPanel != null)
+        {
             menuPanel.SetActive(false);
+            CanvasGroup cgMenu = menuPanel.GetComponent<CanvasGroup>();
+            if (cgMenu != null)
+            {
+                cgMenu.blocksRaycasts = true;
+                cgMenu.interactable = true;
+                cgMenu.alpha = 1f;
+            }
+        }
 
-        // 🔥 Ensure fade image does NOT block clicks
         if (fadeImage != null)
         {
-            var img = fadeImage.GetComponent<Image>();
-            if (img != null)
-                img.raycastTarget = false;
+            fadeImage.raycastTarget = false; // ne bloque pas les clics
+        }
+
+        // ⚡ Assurer que PlayButton est actif et cliquable
+        if (playButton != null)
+        {
+            playButton.gameObject.SetActive(true);
+            playButton.interactable = true;
         }
 
         StartCoroutine(Sequence());
@@ -46,96 +62,47 @@ public class MainMenu : MonoBehaviour
 
     IEnumerator Sequence()
     {
-        // 1. Fade IN (show title)
         yield return FadeIn();
         yield return new WaitForSeconds(2f);
 
-        // 2. Fade OUT (to black)
         yield return FadeOut();
-
-        // 3. Hide title
         title.SetActive(false);
 
-        // 4. Show intro panel
+        // Intro
         introPanel.SetActive(true);
-
         CanvasGroup cgIntro = introPanel.GetComponent<CanvasGroup>();
-        if (cgIntro != null)
-            cgIntro.blocksRaycasts = true;
-
-        // 5. Fade IN intro
+        if (cgIntro != null) cgIntro.blocksRaycasts = true;
         yield return FadeIn();
-
-        // 6. Play intro text
         yield return PlayIntroText();
-
-        // 7. Fade OUT intro
         yield return FadeOut();
-
         introPanel.SetActive(false);
-
-        // 🔥 Extra safety: ensure intro panel cannot block anything
-        introPanel.SetActive(false);
-
-        CanvasGroup cgIntroOff = introPanel.GetComponent<CanvasGroup>();
-        if (cgIntroOff != null)
+        if (cgIntro != null)
         {
-            cgIntroOff.blocksRaycasts = false;
-            cgIntroOff.interactable = false;
-            cgIntroOff.alpha = 0f;
+            cgIntro.blocksRaycasts = false;
+            cgIntro.interactable = false;
+            cgIntro.alpha = 0f;
         }
 
-        // 8. Show main menu
+        // Menu
         menuPanel.SetActive(true);
-
-        // 🔥 Ensure menu is fully interactive
-        CanvasGroup cgMenu = menuPanel.GetComponent<CanvasGroup>();
-        if (cgMenu != null)
+        CanvasGroup cgMenuFinal = menuPanel.GetComponent<CanvasGroup>();
+        if (cgMenuFinal != null)
         {
-            cgMenu.blocksRaycasts = true;
-            cgMenu.interactable = true;
-            cgMenu.alpha = 1f;
+            cgMenuFinal.blocksRaycasts = true;
+            cgMenuFinal.interactable = true;
+            cgMenuFinal.alpha = 1f;
         }
 
-        // 9. Final fade IN
+        // ⚡ S'assurer que le bouton Play est au premier plan
+        if (playButton != null)
+        {
+            playButton.transform.SetAsLastSibling();
+            playButton.interactable = true;
+        }
+
         yield return FadeIn();
     }
 
-    IEnumerator FadeIn()
-    {
-        if (fadeImage == null) yield break;
-
-        Color c = fadeImage.color;
-
-        for (float t = 1f; t > 0f; t -= Time.deltaTime / fadeDuration)
-        {
-            c.a = t;
-            fadeImage.color = c;
-            yield return null;
-        }
-
-        c.a = 0f;
-        fadeImage.color = c;
-    }
-
-    IEnumerator FadeOut()
-    {
-        if (fadeImage == null) yield break;
-
-        Color c = fadeImage.color;
-
-        for (float t = 0f; t < 1f; t += Time.deltaTime / fadeDuration)
-        {
-            c.a = t;
-            fadeImage.color = c;
-            yield return null;
-        }
-
-        c.a = 1f;
-        fadeImage.color = c;
-    }
-
-    
     public void PlayGame()
     {
         Debug.Log("BOUTON CLIQUÉ");
@@ -148,12 +115,41 @@ public class MainMenu : MonoBehaviour
         SceneManager.LoadScene(gameSceneName);
     }
 
+    IEnumerator FadeIn()
+    {
+        if (fadeImage == null) yield break;
+
+        Color c = fadeImage.color;
+        for (float t = 1f; t > 0f; t -= Time.deltaTime / fadeDuration)
+        {
+            c.a = t;
+            fadeImage.color = c;
+            yield return null;
+        }
+        c.a = 0f;
+        fadeImage.color = c;
+    }
+
+    IEnumerator FadeOut()
+    {
+        if (fadeImage == null) yield break;
+
+        Color c = fadeImage.color;
+        for (float t = 0f; t < 1f; t += Time.deltaTime / fadeDuration)
+        {
+            c.a = t;
+            fadeImage.color = c;
+            yield return null;
+        }
+        c.a = 1f;
+        fadeImage.color = c;
+    }
+
     IEnumerator PlayIntroText()
     {
         if (introText == null) yield break;
 
         introText.text = "";
-
         yield return ShowLine("République Démocratique du Congo.", 2f);
         yield return ShowLine("\n\nIci, le cobalt vaut plus que des vies.", 3f);
         yield return ShowLine("\n\nChaque jour, des jeunes descendent dans des mines instables,", 2f);

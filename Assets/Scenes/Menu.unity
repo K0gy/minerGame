@@ -136,7 +136,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &376987933
 RectTransform:
   m_ObjectHideFlags: 0
@@ -505,6 +505,7 @@ MonoBehaviour:
   menuPanel: {fileID: 376987932}
   introPanel: {fileID: 1938279511}
   introText: {fileID: 1846814837}
+  playButton: {fileID: 1021545284}
   fadeDuration: 2
   gameSceneName: SampleScene
 --- !u!4 &699438244

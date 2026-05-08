@@ -19,6 +19,28 @@ public class MainMenu : MonoBehaviour
 
     void Start()
     {
+        // 🔥 Make sure intro panel does NOT block clicks at start
+        if (introPanel != null)
+        {
+            introPanel.SetActive(false);
+
+            CanvasGroup cg = introPanel.GetComponent<CanvasGroup>();
+            if (cg != null)
+                cg.blocksRaycasts = false;
+        }
+
+        // Menu should be OFF at start (will be shown after intro)
+        if (menuPanel != null)
+            menuPanel.SetActive(false);
+
+        // 🔥 Ensure fade image does NOT block clicks
+        if (fadeImage != null)
+        {
+            var img = fadeImage.GetComponent<Image>();
+            if (img != null)
+                img.raycastTarget = false;
+        }
+
         StartCoroutine(Sequence());
     }
 
@@ -37,6 +59,10 @@ public class MainMenu : MonoBehaviour
         // 4. Show intro panel
         introPanel.SetActive(true);
 
+        CanvasGroup cgIntro = introPanel.GetComponent<CanvasGroup>();
+        if (cgIntro != null)
+            cgIntro.blocksRaycasts = true;
+
         // 5. Fade IN intro
         yield return FadeIn();
 
@@ -48,8 +74,28 @@ public class MainMenu : MonoBehaviour
 
         introPanel.SetActive(false);
 
+        // 🔥 Extra safety: ensure intro panel cannot block anything
+        introPanel.SetActive(false);
+
+        CanvasGroup cgIntroOff = introPanel.GetComponent<CanvasGroup>();
+        if (cgIntroOff != null)
+        {
+            cgIntroOff.blocksRaycasts = false;
+            cgIntroOff.interactable = false;
+            cgIntroOff.alpha = 0f;
+        }
+
         // 8. Show main menu
         menuPanel.SetActive(true);
+
+        // 🔥 Ensure menu is fully interactive
+        CanvasGroup cgMenu = menuPanel.GetComponent<CanvasGroup>();
+        if (cgMenu != null)
+        {
+            cgMenu.blocksRaycasts = true;
+            cgMenu.interactable = true;
+            cgMenu.alpha = 1f;
+        }
 
         // 9. Final fade IN
         yield return FadeIn();
@@ -92,7 +138,8 @@ public class MainMenu : MonoBehaviour
     
     public void PlayGame()
     {
-    Debug.Log("BOUTON CLIQUÉ");
+        Debug.Log("BOUTON CLIQUÉ");
+        StartCoroutine(FadeOutAndLoad());
     }
 
     IEnumerator FadeOutAndLoad()

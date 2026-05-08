@@ -12,6 +12,9 @@ public class GameOverManager : MonoBehaviour
     public void ShowGameOver()
     {
         GameOverPanel.SetActive(true);
+
+
+    
         Time.timeScale = 0f;
 
         MiningController mining = FindObjectOfType<MiningController>();

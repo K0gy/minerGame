@@ -14,6 +14,9 @@ public class MainMenu : MonoBehaviour
     public TextMeshProUGUI introText;
     public Button playButton; // <-- Assigner le bouton Play ici
 
+    [Header("Background Music")]
+    [SerializeField] private AudioSource backgroundMusic;
+
     [Header("Settings")]
     public float fadeDuration = 2f;
     public string gameSceneName = "SampleScene";
@@ -106,6 +109,8 @@ public class MainMenu : MonoBehaviour
     public void PlayGame()
     {
         Debug.Log("BOUTON CLIQUÉ");
+        if(backgroundMusic != null && !backgroundMusic.isPlaying)
+            backgroundMusic.Play();
         StartCoroutine(FadeOutAndLoad());
     }
 

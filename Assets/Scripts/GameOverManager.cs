@@ -9,8 +9,28 @@ public class GameOverManager : MonoBehaviour
     public TextMeshProUGUI yourScoreText;
     public TextMeshProUGUI highScoreText;
 
+    [Header("Game Over Audio")]
+    [SerializeField] private AudioSource gameOverAudio;
+    [SerializeField] private AudioClip gameOverClip;
+
     public void ShowGameOver()
     {
+        // 🔊 Play Game Over sound
+        if (gameOverAudio == null)
+            gameOverAudio = GetComponent<AudioSource>();
+
+        if (gameOverClip != null)
+        {
+            if (gameOverAudio != null)
+            {
+                gameOverAudio.PlayOneShot(gameOverClip);
+            }
+            else
+            {
+                AudioSource.PlayClipAtPoint(gameOverClip, transform.position);
+            }
+        }
+
         GameOverPanel.SetActive(true);
         Time.timeScale = 0f;
 

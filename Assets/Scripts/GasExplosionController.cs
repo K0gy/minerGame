@@ -35,6 +35,10 @@ public class GasExplosionController : MonoBehaviour
 
     private void Awake()
     {
+        // 🔊 Auto-assign AudioSource if missing
+        if (explosionAudio == null)
+            explosionAudio = GetComponent<AudioSource>();
+
         if (playerController == null)
             playerController = GetComponent<PlayerController>();
 
@@ -85,9 +89,19 @@ public class GasExplosionController : MonoBehaviour
         if (!proceduralGeneration.HasGas(gasX, gasY)) return;
 
         if (debugLogs) Debug.Log("BOOM!");
+
+        // 🔊 DEBUG AUDIO
+        Debug.Log("SON TEST");
+
         if (explosionAudio != null && explosionClip != null)
         {
-        explosionAudio.PlayOneShot(explosionClip);
+            Debug.Log("AUDIO OK - PLAYING SOUND");
+            explosionAudio.pitch = Random.Range(0.9f, 1.1f);
+            explosionAudio.PlayOneShot(explosionClip);
+        }
+        else
+        {
+            Debug.Log("AUDIO NULL - CHECK INSPECTOR");
         }
 
         Vector3 explosionWorldPos = new Vector3(gasX + 0.5f, gasY + 0.5f, 0f);
